@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useKakaoMapInstance } from '@/hooks/useKakaoMap';
 import type { ViewportBounds } from '@/hooks/useViewportEvents';
 
@@ -9,7 +9,22 @@ export interface MapMarker {
   lat: number;
   lng: number;
   title: string;
+  /** Optional hex color for the marker pin (e.g. '#FF6B6B'). Falls back to default Kakao marker. */
+  color?: string;
   onClick?: (id: string) => void;
+}
+
+/**
+ * Generates a colored pin SVG as a data URL for use as a Kakao MarkerImage.
+ * The pin is a filled circle with a pointed bottom.
+ */
+function makeMarkerImageUrl(color: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <circle cx="14" cy="13" r="11" fill="${color}" stroke="white" stroke-width="2.5"/>
+    <polygon points="14,36 8,26 20,26" fill="${color}"/>
+    <circle cx="14" cy="13" r="4.5" fill="white" opacity="0.45"/>
+  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 interface KakaoMapProps {
@@ -30,6 +45,8 @@ interface KakaoMapProps {
    * Receives the current bounding box so the parent can load only visible markers.
    */
   onBoundsChange?: (bounds: ViewportBounds) => void;
+  /** Called when the map fails to load (e.g. missing API key, network error) */
+  onError?: (error: Error) => void;
 }
 
 /**
@@ -50,12 +67,22 @@ export default function KakaoMap({
   className = '',
   onMapReady,
   onBoundsChange,
+  onError,
 }: KakaoMapProps) {
   const { containerRef, mapInstance, status, error } = useKakaoMapInstance({
     lat,
     lng,
     level,
   });
+
+  // Notify parent when map fails to load (call once per error instance)
+  const reportedErrorRef = useRef<Error | null>(null);
+  useEffect(() => {
+    if (status === 'error' && error && onError && reportedErrorRef.current !== error) {
+      reportedErrorRef.current = error;
+      onError(error);
+    }
+  }, [status, error, onError]);
 
   // Notify parent when map is ready
   useEffect(() => {
@@ -101,12 +128,29 @@ export default function KakaoMap({
 
     markers.forEach((markerData) => {
       const position = new window.kakao.maps.LatLng(markerData.lat, markerData.lng);
-      const marker = new window.kakao.maps.Marker({
+
+      // Build marker options, optionally with a custom colored image
+      const markerOptions: kakao.maps.MarkerOptions = {
         map: mapInstance,
         position,
         title: markerData.title,
         clickable: !!markerData.onClick,
-      });
+      };
+
+      if (markerData.color) {
+        const imageUrl = makeMarkerImageUrl(markerData.color);
+        const imageSize = new window.kakao.maps.Size(28, 36);
+        const imageOptions: kakao.maps.MarkerImageOptions = {
+          offset: new window.kakao.maps.Point(14, 36),
+        };
+        markerOptions.image = new window.kakao.maps.MarkerImage(
+          imageUrl,
+          imageSize,
+          imageOptions
+        );
+      }
+
+      const marker = new window.kakao.maps.Marker(markerOptions);
 
       if (markerData.onClick) {
         window.kakao.maps.event.addListener(marker, 'click', () => {
@@ -126,14 +170,15 @@ export default function KakaoMap({
   if (status === 'error') {
     return (
       <div
-        className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
+        className={`flex items-center justify-center bg-gray-50 ${className}`}
         role="alert"
         aria-label="지도 로딩 오류"
       >
-        <div className="text-center p-6">
-          <p className="text-red-500 font-medium">지도를 불러올 수 없습니다</p>
-          <p className="text-gray-500 text-sm mt-1">
-            {error?.message ?? '잠시 후 다시 시도해 주세요'}
+        <div className="text-center p-6 max-w-xs">
+          <div className="text-4xl mb-3">🗺️</div>
+          <p className="text-gray-800 font-semibold text-base mb-1">지도를 불러올 수 없습니다</p>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            아래 목록에서 행사를 확인해 주세요
           </p>
         </div>
       </div>

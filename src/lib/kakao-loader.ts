@@ -45,12 +45,12 @@ export function loadKakaoMapSDK(appKey: string): Promise<void> {
 
   sdkLoadPromise = new Promise<void>((resolve, reject) => {
     if (typeof window === 'undefined') {
-      reject(new Error('Kakao Map SDK can only be loaded in browser environment'));
+      reject(new Error('카카오 지도 SDK는 브라우저 환경에서만 사용할 수 있습니다.'));
       return;
     }
 
     if (!appKey) {
-      reject(new Error('Kakao Map App Key is required'));
+      reject(new Error('카카오 지도 앱 키가 필요합니다. NEXT_PUBLIC_KAKAO_MAP_APP_KEY를 설정해 주세요.'));
       return;
     }
 
@@ -83,13 +83,13 @@ export function loadKakaoMapSDK(appKey: string): Promise<void> {
           resolve();
         });
       } else {
-        reject(new Error('Kakao SDK loaded but kakao.maps.load is not available'));
+        reject(new Error('카카오 SDK가 로드되었지만 초기화 함수를 찾을 수 없습니다.'));
       }
     };
 
     script.onerror = () => {
       sdkLoadPromise = null; // Allow retry on error
-      reject(new Error('Failed to load Kakao Map SDK script. Check your App Key and network.'));
+      reject(new Error('카카오 지도 SDK를 불러오는 데 실패했습니다. 앱 키와 네트워크 연결을 확인해 주세요.'));
     };
 
     // Inject before closing </head> for optimal placement
@@ -122,7 +122,7 @@ function waitForKakaoLoad(
   }
 
   if (attempts >= MAX_ATTEMPTS) {
-    reject(new Error('Kakao Map SDK load timed out after 10 seconds'));
+    reject(new Error('카카오 지도 SDK 로딩 시간이 초과되었습니다 (10초). 네트워크 상태를 확인해 주세요.'));
     return;
   }
 

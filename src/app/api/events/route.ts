@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Route Handlers with dynamic query params are always dynamic (not statically cached
+// by Next.js framework).  CDN-level caching is handled by the explicit Cache-Control
+// response header below, which tells Vercel Edge to serve cached responses for 60 s.
+export const dynamic = 'force-dynamic';
+
 // Cache-Control header: edge CDN caches for 60s, browser revalidates up to 5 min stale
 const CACHE_HEADERS = {
   'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',

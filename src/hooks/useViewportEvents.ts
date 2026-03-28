@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -122,6 +122,26 @@ interface UseViewportEventsResult {
   updateViewport: (bounds: ViewportBounds) => void;
 }
 
+export interface UseViewportEventsOptions {
+  /** Optional event-type and search-query filters forwarded to the API */
+  filters?: ViewportEventFilters;
+  /**
+   * Pre-fetched events from SSR/server component.
+   * When provided these events are shown immediately on first render,
+   * eliminating the blank-markers state while the map SDK initializes.
+   * The hook will still fetch fresh data once the real map viewport is known.
+   */
+  initialEvents?: ViewportEvent[];
+  /**
+   * The bounding box used to pre-fetch `initialEvents` on the server.
+   * When provided alongside `initialEvents`, the hook pre-seeds the client-side
+   * LRU cache with the server data.  If the map's first viewport lands within
+   * the same snapped cell as `initialBounds`, the cache hit is immediate and
+   * no API request is made for the initial render.
+   */
+  initialBounds?: ViewportBounds;
+}
+
 /**
  * useViewportEvents
  *
@@ -137,15 +157,60 @@ interface UseViewportEventsResult {
  *   response is applied.
  * - **Server-side CDN cache**: API responses carry `Cache-Control: s-maxage=60`
  *   so Vercel edge nodes serve repeated identical requests without hitting the DB.
+ * - **Filter-change auto-refetch**: when eventType or search query changes, the
+ *   hook automatically re-fetches for the last known viewport bounds.
+ * - **SSR initial data**: accepts pre-fetched `initialEvents` from server
+ *   components so markers appear instantly without waiting for the map to emit
+ *   its first viewport bounds.
  *
  * @param filters Optional event-type and search-query filters forwarded to the API
+ * @param initialEvents Pre-fetched events from server-side rendering
+ *
+ * @deprecated Use the object overload: useViewportEvents({ filters, initialEvents })
  */
 export function useViewportEvents(
-  filters: ViewportEventFilters = {}
+  filtersOrOptions: ViewportEventFilters | UseViewportEventsOptions = {}
 ): UseViewportEventsResult {
-  const [events, setEvents] = useState<ViewportEvent[]>([]);
+  // Support both legacy (filters object) and new ({ filters, initialEvents, initialBounds }) call signatures
+  const isOptionsShape =
+    filtersOrOptions !== null &&
+    typeof filtersOrOptions === 'object' &&
+    ('filters' in filtersOrOptions || 'initialEvents' in filtersOrOptions || 'initialBounds' in filtersOrOptions);
+
+  const filters: ViewportEventFilters = isOptionsShape
+    ? ((filtersOrOptions as UseViewportEventsOptions).filters ?? {})
+    : (filtersOrOptions as ViewportEventFilters);
+
+  const initialEvents: ViewportEvent[] = isOptionsShape
+    ? ((filtersOrOptions as UseViewportEventsOptions).initialEvents ?? [])
+    : [];
+
+  const initialBounds: ViewportBounds | undefined = isOptionsShape
+    ? (filtersOrOptions as UseViewportEventsOptions).initialBounds
+    : undefined;
+
+  const [events, setEvents] = useState<ViewportEvent[]>(initialEvents);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-seed the client-side LRU cache with server-fetched data on first mount.
+  // We do this once so subsequent viewport updates that land in the same snapped
+  // cell get an instant cache hit instead of a network round-trip.
+  const cacheSeedDoneRef = useRef(false);
+  useEffect(() => {
+    if (cacheSeedDoneRef.current) return;
+    cacheSeedDoneRef.current = true;
+
+    if (initialEvents.length > 0 && initialBounds) {
+      const snapped = snapBounds(initialBounds);
+      const key = boundsKey(snapped, filters);
+      // Only seed if the slot is empty (another tab may have already filled it)
+      if (!getCached(key)) {
+        setCached(key, initialEvents);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once on mount only
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortController = useRef<AbortController | null>(null);
@@ -153,6 +218,9 @@ export function useViewportEvents(
   // sees the current value without needing to re-register the timer.
   const filtersRef = useRef<ViewportEventFilters>(filters);
   filtersRef.current = filters;
+
+  // Track the last known viewport bounds so we can re-fetch when filters change
+  const lastBoundsRef = useRef<ViewportBounds | null>(null);
 
   const fetchForBounds = useCallback(async (bounds: ViewportBounds) => {
     const snapped = snapBounds(bounds);
@@ -237,6 +305,9 @@ export function useViewportEvents(
 
   const updateViewport = useCallback(
     (bounds: ViewportBounds) => {
+      // Store the latest bounds so filter-change refetch can use them
+      lastBoundsRef.current = bounds;
+
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       debounceTimer.current = setTimeout(() => {
         fetchForBounds(bounds);
@@ -244,6 +315,25 @@ export function useViewportEvents(
     },
     [fetchForBounds]
   );
+
+  // Auto-refetch when filters change (e.g. user taps a category tab or types a search query).
+  // We read from lastBoundsRef so we always fetch the current viewport with the new filters.
+  // The 300ms debounce inside updateViewport means rapid filter changes don't hammer the API.
+  const prevEventTypeRef = useRef(filters.eventType);
+  const prevQRef = useRef(filters.q);
+
+  useEffect(() => {
+    const eventTypeChanged = prevEventTypeRef.current !== filters.eventType;
+    const qChanged = prevQRef.current !== filters.q;
+
+    prevEventTypeRef.current = filters.eventType;
+    prevQRef.current = filters.q;
+
+    if ((eventTypeChanged || qChanged) && lastBoundsRef.current) {
+      // Re-use the debounced updateViewport so rapid typing still debounces
+      updateViewport(lastBoundsRef.current);
+    }
+  }, [filters.eventType, filters.q, updateViewport]);
 
   return { events, isLoading, error, updateViewport };
 }

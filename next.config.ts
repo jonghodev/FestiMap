@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
-      // Security header for all routes
+      // ── Security + preconnect hints for all routes ───────────────────────
       {
         source: "/(.*)",
         headers: [
@@ -25,12 +25,35 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
+          // Preconnect to Kakao CDNs so map tiles and the SDK load faster.
+          // The browser starts the TCP+TLS handshake before the Kakao SDK
+          // even requests its first tile, saving ~100–300 ms on mobile networks.
+          {
+            key: "Link",
+            value: [
+              "<https://dapi.kakao.com>; rel=preconnect",
+              "<https://map.kakaocdn.net>; rel=preconnect",
+              "<https://t1.kakaocdn.net>; rel=preconnect",
+            ].join(", "),
+          },
         ],
       },
-      // Long-lived cache for Next.js static chunks (_next/static/*).
-      // These files are content-hashed so they can be cached indefinitely.
-      // The browser serves them from cache on repeat visits, which cuts tile
-      // and SDK asset round-trips significantly.
+
+      // ── Events API: edge-cacheable (60 s), stale-while-revalidate 5 min ──
+      // Vercel edge nodes cache responses keyed by the full query string
+      // (swLat, swLng, neLat, neLng, eventType, q), so identical viewport
+      // requests never hit the database.
+      {
+        source: "/api/events",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        ],
+      },
+
+      // ── Next.js static chunks: content-hashed, cache forever ────────────
       {
         source: "/_next/static/(.*)",
         headers: [
@@ -40,7 +63,8 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // PWA manifest – short-lived so updates are picked up quickly
+
+      // ── PWA manifest: short-lived so updates propagate quickly ───────────
       {
         source: "/manifest.json",
         headers: [

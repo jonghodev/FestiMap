@@ -5,6 +5,7 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -32,6 +33,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={`${geistSans.variable} h-full antialiased`}>
+      <head>
+        {/* Prefetch Kakao DNS early so SDK download starts sooner */}
+        <link rel="dns-prefetch" href="//dapi.kakao.com" />
+        <link rel="preconnect" href="https://dapi.kakao.com" crossOrigin="anonymous" />
+        {/* Kakao tile servers */}
+        <link rel="dns-prefetch" href="//map.kakao.com" />
+        <link rel="dns-prefetch" href="//t1.daumcdn.net" />
+        <link rel="dns-prefetch" href="//t2.daumcdn.net" />
+        <link rel="dns-prefetch" href="//t3.daumcdn.net" />
+      </head>
       <body className="min-h-full flex flex-col bg-white">{children}</body>
     </html>
   );

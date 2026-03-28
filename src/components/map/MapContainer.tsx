@@ -27,6 +27,8 @@ interface MapContainerProps {
   onMapReady?: (map: kakao.maps.Map) => void;
   /** Called when the map viewport settles after pan/zoom – use to load visible markers */
   onBoundsChange?: (bounds: ViewportBounds) => void;
+  /** Called when the map fails to load */
+  onError?: (error: Error) => void;
 }
 
 /**
