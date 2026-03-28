@@ -2,5 +2,6 @@
   "framework": "nextjs",
   "buildCommand": "prisma generate --schema=prisma/schema.production.prisma && prisma migrate deploy --schema=prisma/schema.production.prisma && next build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "regions": ["icn1"]
 }
