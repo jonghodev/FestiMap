@@ -11,6 +11,10 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Ignore auto-generated files
+  {
+    ignores: ["next-env.d.ts", ".next/**", "node_modules/**"],
+  },
   // Apply TypeScript parser to all TS/TSX files
   {
     files: ["**/*.ts", "**/*.tsx"],
