@@ -29,6 +29,7 @@
     "db:prod:seed:reset": "tsx scripts/seed-production.ts --reset"
   },
   "dependencies": {
+    "@base-ui/react": "^1.3.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",

@@ -6,7 +6,9 @@ import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 import BackButton from '@/components/BackButton';
 import BookmarkButton from '@/components/BookmarkButton';
 import EventInfoSection from '@/components/EventInfoSection';
-import EventVenueMap from '@/components/map/EventVenueMap';
+// EventVenueMapClient uses next/dynamic internally so the map bundle is loaded
+// lazily on the client instead of being included in the page's initial JS.
+import EventVenueMap from '@/components/map/EventVenueMapClient';
 import SocialSharePanel from '@/components/SocialSharePanel';
 
 const EVENT_TYPE_COLORS = {

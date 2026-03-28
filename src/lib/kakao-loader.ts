@@ -74,7 +74,8 @@ export function loadKakaoMapSDK(appKey: string): Promise<void> {
     script.src = scriptSrc;
     script.async = true;        // Non-blocking download
     script.defer = false;       // Execute as soon as downloaded (we need it ASAP for maps)
-    script.crossOrigin = 'anonymous';
+    // Note: crossOrigin is intentionally omitted — Kakao's CDN may not send CORS headers
+    // for script requests, and setting crossOrigin=anonymous would cause a CORS error.
 
     script.onload = () => {
       // SDK script downloaded; now initialize the maps module

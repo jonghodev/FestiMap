@@ -1,22 +1,14 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+// KakaoMap is imported directly (not via dynamic) because MapContainer itself
+// is already loaded via next/dynamic with ssr:false in MapPageClient.tsx.
+// A second dynamic() here would create an unnecessary network waterfall:
+//   MapPageClient → dynamic → MapContainer chunk → dynamic → KakaoMap chunk
+// By bundling KakaoMap into the same chunk as MapContainer we eliminate one
+// extra round-trip and load both components in a single request.
+import KakaoMap from './KakaoMap';
 import type { MapMarker, MapViewportState, MapPanTarget } from './KakaoMap';
 import type { ViewportBounds } from '@/hooks/useViewportEvents';
-
-// Dynamically import the map component to prevent SSR
-// This is critical: Kakao Map SDK requires browser window object
-const KakaoMap = dynamic(() => import('./KakaoMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-500 text-sm">지도 불러오는 중...</p>
-      </div>
-    </div>
-  ),
-});
 
 interface MapContainerProps {
   lat?: number;
@@ -46,8 +38,9 @@ interface MapContainerProps {
 /**
  * Client-side wrapper for KakaoMap with SSR disabled.
  *
- * Use this component in Server Components (pages) to safely render the map.
- * next/dynamic with ssr:false must be used in a Client Component in Next.js App Router.
+ * MapContainer is itself loaded via next/dynamic (ssr:false) in MapPageClient,
+ * so it is guaranteed to run in a browser context.  KakaoMap is bundled into
+ * the same lazy chunk — no additional dynamic split needed here.
  */
 export default function MapContainer(props: MapContainerProps) {
   return <KakaoMap {...props} />;
