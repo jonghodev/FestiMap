@@ -1,0 +1,24 @@
+{
+  "name": "FestiMap - 내 주변 축제 지도",
+  "short_name": "FestiMap",
+  "description": "서울 수도권 축제, 플리마켓, 야시장을 지도에서 한눈에 확인하세요",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FACC15",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}

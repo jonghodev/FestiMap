@@ -1,0 +1,64 @@
+// FestiMap Prisma Schema
+// festimap schema on PostgreSQL RDS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String     @id @default(cuid())
+  email      String     @unique
+  password   String
+  name       String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  bookmarks  Bookmark[]
+
+  @@map("users")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  eventType   String   // FESTIVAL | FLEA_MARKET | NIGHT_MARKET
+  startDate   DateTime
+  endDate     DateTime
+  venue       String
+  address     String
+  latitude    Float
+  longitude   Float
+  district    String?
+  city        String   @default("서울특별시")
+  imageUrl    String?
+  sourceUrl   String?
+  sourceId    String?  @unique
+  isFree      Boolean  @default(false)
+  price       String?
+  organizer   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  bookmarks   Bookmark[]
+
+  @@index([latitude, longitude])
+  @@index([startDate, endDate])
+  @@index([eventType])
+  @@map("events")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("bookmarks")
+}
