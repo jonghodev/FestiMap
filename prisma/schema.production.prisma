@@ -1,13 +1,13 @@
-// FestiMap Prisma Schema
-// Local dev: SQLite (DATABASE_URL="file:./dev.db")
-// Production: PostgreSQL on AWS RDS (DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/festimap?schema=festimap")
+// FestiMap Production Schema - PostgreSQL on AWS RDS
+// Used by Vercel build: prisma generate --schema=prisma/schema.production.prisma
+// DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/festimap?schema=festimap"
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

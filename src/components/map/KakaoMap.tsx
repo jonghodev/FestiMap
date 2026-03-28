@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useKakaoMapInstance } from '@/hooks/useKakaoMap';
+import type { ViewportBounds } from '@/hooks/useViewportEvents';
 
 export interface MapMarker {
   id: string;
@@ -24,6 +25,11 @@ interface KakaoMapProps {
   className?: string;
   /** Called when the map finishes initializing */
   onMapReady?: (map: kakao.maps.Map) => void;
+  /**
+   * Called when the map viewport changes (pan / zoom) and the map becomes idle.
+   * Receives the current bounding box so the parent can load only visible markers.
+   */
+  onBoundsChange?: (bounds: ViewportBounds) => void;
 }
 
 /**
@@ -32,6 +38,9 @@ interface KakaoMapProps {
  * Renders a Kakao Map with lazy-loaded SDK.
  * Shows a loading skeleton while the SDK initializes.
  * Suitable for mobile-first use (touch-friendly, responsive).
+ *
+ * Emits `onBoundsChange` whenever the viewport settles after a pan or zoom,
+ * enabling the parent to fetch only the markers visible in the current viewport.
  */
 export default function KakaoMap({
   lat = 37.5665,   // Seoul city hall
@@ -40,6 +49,7 @@ export default function KakaoMap({
   markers = [],
   className = '',
   onMapReady,
+  onBoundsChange,
 }: KakaoMapProps) {
   const { containerRef, mapInstance, status, error } = useKakaoMapInstance({
     lat,
@@ -53,6 +63,35 @@ export default function KakaoMap({
       onMapReady(mapInstance);
     }
   }, [mapInstance, onMapReady]);
+
+  // Emit initial bounds + subscribe to `idle` event for subsequent viewport changes.
+  // The `idle` event fires once the map has finished moving/zooming, which avoids
+  // calling onBoundsChange on every intermediate animation frame.
+  useEffect(() => {
+    if (!mapInstance || !onBoundsChange) return;
+
+    const emitBounds = () => {
+      const bounds = mapInstance.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      onBoundsChange({
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+      });
+    };
+
+    // Emit immediately for the initial viewport so the first render loads markers
+    emitBounds();
+
+    // Subscribe to subsequent viewport changes
+    window.kakao.maps.event.addListener(mapInstance, 'idle', emitBounds);
+
+    return () => {
+      window.kakao.maps.event.removeListener(mapInstance, 'idle', emitBounds);
+    };
+  }, [mapInstance, onBoundsChange]);
 
   // Place markers on the map
   useEffect(() => {
