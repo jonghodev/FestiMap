@@ -79,7 +79,16 @@ export function loadKakaoMapSDK(appKey: string): Promise<void> {
     script.onload = () => {
       // SDK script downloaded; now initialize the maps module
       if (typeof window.kakao !== 'undefined' && typeof window.kakao.maps?.load === 'function') {
+        // Safety timeout: if kakao.maps.load() callback never fires (e.g. invalid
+        // app key with silent domain validation failure), reject after 3 s so the
+        // UI can fall back to list view rather than waiting indefinitely.
+        const loadTimeoutId = setTimeout(() => {
+          sdkLoadPromise = null;
+          reject(new Error('카카오 지도 초기화 시간이 초과되었습니다 (3초). 앱 키와 도메인 설정을 확인해 주세요.'));
+        }, 3000);
+
         window.kakao.maps.load(() => {
+          clearTimeout(loadTimeoutId);
           resolve();
         });
       } else {
@@ -108,7 +117,7 @@ function waitForKakaoLoad(
   reject: (err: Error) => void,
   attempts = 0
 ): void {
-  const MAX_ATTEMPTS = 100; // 10 seconds max
+  const MAX_ATTEMPTS = 50; // 5 seconds max (reduced from 10 s for faster fallback on mobile)
   const POLL_INTERVAL = 100; // ms
 
   if (isKakaoMapsReady()) {
@@ -122,7 +131,7 @@ function waitForKakaoLoad(
   }
 
   if (attempts >= MAX_ATTEMPTS) {
-    reject(new Error('카카오 지도 SDK 로딩 시간이 초과되었습니다 (10초). 네트워크 상태를 확인해 주세요.'));
+    reject(new Error('카카오 지도 SDK 로딩 시간이 초과되었습니다 (5초). 네트워크 상태를 확인해 주세요.'));
     return;
   }
 

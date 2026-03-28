@@ -15,7 +15,18 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:prod:generate": "prisma generate --schema=prisma/schema.production.prisma",
-    "db:prod:migrate": "prisma migrate deploy --schema=prisma/schema.production.prisma"
+    "db:prod:migrate": "prisma migrate deploy --schema=prisma/schema.production.prisma",
+    "events:fetch": "tsx scripts/fetch-public-events.ts",
+    "events:collect": "tsx scripts/collect-events.ts",
+    "events:normalize": "tsx scripts/normalize-seed-events.ts",
+    "events:validate": "tsx scripts/transform-validate-events.ts",
+    "db:seed:pipeline": "tsx scripts/seed-with-transform.ts",
+    "db:seed:validated": "tsx scripts/seed-from-validated.ts",
+    "db:seed:reset": "tsx scripts/seed-from-validated.ts --reset",
+    "db:seed:dry-run": "tsx scripts/seed-from-validated.ts --dry-run",
+    "db:prod:seed": "tsx scripts/seed-production.ts",
+    "db:prod:seed:dry-run": "tsx scripts/seed-production.ts --dry-run",
+    "db:prod:seed:reset": "tsx scripts/seed-production.ts --reset"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

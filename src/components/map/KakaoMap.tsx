@@ -27,6 +27,36 @@ function makeMarkerImageUrl(color: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+/**
+ * Generates a "current location" blue-dot SVG as a data URL.
+ * Resembles the standard GPS location indicator used in popular map apps.
+ */
+function makeUserLocationImageUrl(): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#1B73E8" stroke="white" stroke-width="3"/>
+    <circle cx="12" cy="12" r="4" fill="white" opacity="0.9"/>
+  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+/** Map viewport state – center coordinates and zoom level */
+export interface MapViewportState {
+  lat: number;
+  lng: number;
+  level: number;
+}
+
+/**
+ * A programmatic pan target for the map.
+ * When this prop changes the map pans (and optionally re-zooms) to the given position.
+ * Useful for region-filter chips that jump the map to a predefined area.
+ */
+export interface MapPanTarget {
+  lat: number;
+  lng: number;
+  level: number;
+}
+
 interface KakaoMapProps {
   /** Initial center latitude (default: Seoul city hall) */
   lat?: number;
@@ -38,6 +68,18 @@ interface KakaoMapProps {
   markers?: MapMarker[];
   /** CSS class name for the map container */
   className?: string;
+  /**
+   * User's current GPS location. When provided, the map pans to these
+   * coordinates and displays a blue "current location" dot marker.
+   */
+  userLocation?: { lat: number; lng: number } | null;
+  /**
+   * When set, the map smoothly pans (and re-zooms) to the given coordinates.
+   * Change this object reference to trigger a pan; the map will fire `idle`
+   * afterwards so `onBoundsChange` is called with the new viewport bounds.
+   * Intended for region-filter chips that select a predefined area.
+   */
+  panTarget?: MapPanTarget | null;
   /** Called when the map finishes initializing */
   onMapReady?: (map: kakao.maps.Map) => void;
   /**
@@ -45,6 +87,11 @@ interface KakaoMapProps {
    * Receives the current bounding box so the parent can load only visible markers.
    */
   onBoundsChange?: (bounds: ViewportBounds) => void;
+  /**
+   * Called when the map viewport changes (pan / zoom) and the map becomes idle.
+   * Receives the current center coordinates and zoom level for state persistence.
+   */
+  onViewportChange?: (state: MapViewportState) => void;
   /** Called when the map fails to load (e.g. missing API key, network error) */
   onError?: (error: Error) => void;
 }
@@ -65,8 +112,11 @@ export default function KakaoMap({
   level = 7,
   markers = [],
   className = '',
+  userLocation = null,
+  panTarget = null,
   onMapReady,
   onBoundsChange,
+  onViewportChange,
   onError,
 }: KakaoMapProps) {
   const { containerRef, mapInstance, status, error } = useKakaoMapInstance({
@@ -95,30 +145,135 @@ export default function KakaoMap({
   // The `idle` event fires once the map has finished moving/zooming, which avoids
   // calling onBoundsChange on every intermediate animation frame.
   useEffect(() => {
-    if (!mapInstance || !onBoundsChange) return;
+    if (!mapInstance || (!onBoundsChange && !onViewportChange)) return;
 
-    const emitBounds = () => {
-      const bounds = mapInstance.getBounds();
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
-      onBoundsChange({
-        swLat: sw.getLat(),
-        swLng: sw.getLng(),
-        neLat: ne.getLat(),
-        neLng: ne.getLng(),
-      });
+    const emitViewport = () => {
+      // Emit bounds for viewport-scoped event loading
+      if (onBoundsChange) {
+        const bounds = mapInstance.getBounds();
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        onBoundsChange({
+          swLat: sw.getLat(),
+          swLng: sw.getLng(),
+          neLat: ne.getLat(),
+          neLng: ne.getLng(),
+        });
+      }
+
+      // Emit center + level for map state persistence across navigations
+      if (onViewportChange) {
+        const center = mapInstance.getCenter();
+        onViewportChange({
+          lat: center.getLat(),
+          lng: center.getLng(),
+          level: mapInstance.getLevel(),
+        });
+      }
     };
 
     // Emit immediately for the initial viewport so the first render loads markers
-    emitBounds();
+    emitViewport();
 
     // Subscribe to subsequent viewport changes
-    window.kakao.maps.event.addListener(mapInstance, 'idle', emitBounds);
+    window.kakao.maps.event.addListener(mapInstance, 'idle', emitViewport);
 
     return () => {
-      window.kakao.maps.event.removeListener(mapInstance, 'idle', emitBounds);
+      window.kakao.maps.event.removeListener(mapInstance, 'idle', emitViewport);
     };
-  }, [mapInstance, onBoundsChange]);
+  }, [mapInstance, onBoundsChange, onViewportChange]);
+
+  // Pan map to user's GPS location whenever it is set or updated.
+  // If the current zoom is wider than level 5 (city-wide), zoom in to
+  // level 4 (neighbourhood) so the user can see surrounding events.
+  useEffect(() => {
+    if (!mapInstance || !userLocation || !window.kakao?.maps) return;
+
+    const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+    const currentLevel = mapInstance.getLevel();
+
+    if (currentLevel > 5) {
+      // Zoom in first, then centre — avoids a jarring double-animation
+      mapInstance.setLevel(4);
+    }
+    mapInstance.setCenter(position);
+  }, [mapInstance, userLocation]);
+
+  // Pan and re-zoom the map whenever panTarget changes.
+  // The map fires `idle` after settling, which triggers onBoundsChange so the parent
+  // can fetch events for the new viewport — no extra plumbing needed.
+  const prevPanTargetRef = useRef<MapPanTarget | null>(null);
+  useEffect(() => {
+    if (!mapInstance || !panTarget || !window.kakao?.maps) return;
+    // Skip if the target hasn't actually changed (guards against re-render noise)
+    const prev = prevPanTargetRef.current;
+    if (
+      prev &&
+      prev.lat === panTarget.lat &&
+      prev.lng === panTarget.lng &&
+      prev.level === panTarget.level
+    ) return;
+    prevPanTargetRef.current = panTarget;
+
+    const position = new window.kakao.maps.LatLng(panTarget.lat, panTarget.lng);
+    // Set zoom first to avoid a jarring double-animation
+    mapInstance.setLevel(panTarget.level);
+    mapInstance.setCenter(position);
+  }, [mapInstance, panTarget]);
+
+  // Show a distinct blue "current location" dot marker at the user's GPS position.
+  // The marker is removed when userLocation becomes null or the component unmounts.
+  useEffect(() => {
+    if (!mapInstance || !userLocation || !window.kakao?.maps) return;
+
+    const position = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+    const imageUrl = makeUserLocationImageUrl();
+    const imageSize = new window.kakao.maps.Size(24, 24);
+    const imageOptions: kakao.maps.MarkerImageOptions = {
+      // Centre the dot on the exact coordinate (half of 24×24)
+      offset: new window.kakao.maps.Point(12, 12),
+    };
+    const markerImage = new window.kakao.maps.MarkerImage(
+      imageUrl,
+      imageSize,
+      imageOptions
+    );
+
+    const locationMarker = new window.kakao.maps.Marker({
+      map: mapInstance,
+      position,
+      image: markerImage,
+      title: '내 위치',
+      zIndex: 10, // Render above event markers (default zIndex is 1)
+    });
+
+    return () => {
+      locationMarker.setMap(null);
+    };
+  }, [mapInstance, userLocation]);
+
+  // Relayout the map whenever the container element is resized.
+  // This covers two important mobile scenarios:
+  //   1. iOS Safari URL bar appearing / disappearing (dynamic viewport height)
+  //   2. Device orientation changes (portrait ↔ landscape)
+  // Without relayout() Kakao Map keeps the old canvas dimensions and leaves
+  // grey bands where the new visible area wasn't painted.
+  useEffect(() => {
+    if (!mapInstance || !containerRef.current || !window.kakao?.maps) return;
+
+    const observer = new ResizeObserver(() => {
+      // Small timeout lets the CSS layout finish before we re-measure
+      requestAnimationFrame(() => {
+        mapInstance.relayout();
+      });
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [mapInstance, containerRef]);
 
   // Place markers on the map
   useEffect(() => {
@@ -187,10 +342,17 @@ export default function KakaoMap({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Map container */}
+      {/* Map container
+          map-touch-container (touch-action: none) is applied directly here so
+          that pinch-to-zoom, drag-to-pan and tap gestures are all forwarded to
+          the Kakao SDK even when this component is embedded inside a parent
+          that does not carry the class (e.g. EventVenueMap's ancestor chain).
+          Defence-in-depth: MapPageClient also sets the class on the outer
+          wrapper, but having it on the actual Kakao element ensures correctness
+          regardless of how the component is composed. */}
       <div
         ref={containerRef}
-        className="w-full h-full"
+        className="w-full h-full map-touch-container"
         aria-label="카카오 지도"
         role="application"
       />

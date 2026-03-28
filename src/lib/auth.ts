@@ -1,11 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { COOKIE_NAME as _COOKIE_NAME } from "./auth-constants";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback-secret-change-in-production"
 );
 
-export const COOKIE_NAME = "festimap-auth";
+/** Re-export for convenience so callers don't need to know about auth-constants. */
+export const COOKIE_NAME = _COOKIE_NAME;
 export const JWT_EXPIRY = "30d";
 
 export async function hashPassword(password: string): Promise<string> {

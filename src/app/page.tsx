@@ -2,6 +2,11 @@ import { prisma } from '@/lib/prisma';
 import MapPageClient from '@/components/MapPageClient';
 import type { ViewportEvent } from '@/hooks/useViewportEvents';
 
+// Force server-side rendering so the pre-fetched event data is always fresh.
+// Without this Next.js would statically render the page at build time, meaning
+// initial markers would be stale until the client fetches from the API.
+export const dynamic = 'force-dynamic';
+
 /**
  * Default Seoul metropolitan area bounding box.
  *

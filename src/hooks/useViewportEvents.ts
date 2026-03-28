@@ -34,6 +34,26 @@ export interface ViewportEventFilters {
   eventType?: string;
   /** Search query (matched against event name with LIKE on the server) */
   q?: string;
+  /**
+   * GPS-based radius filter: show only events within `radiusKm` kilometres of the
+   * given point. The API uses the Haversine formula for exact circular filtering.
+   * A bounding box derived from the circle is also applied at the DB query level
+   * for efficiency (pre-filter before exact radius check).
+   */
+  gpsRadius?: {
+    lat: number;
+    lng: number;
+    radiusKm: number;
+  };
+  /**
+   * Date range filter: show only events that overlap with the given date range.
+   * Both values are ISO date strings (YYYY-MM-DD).
+   * An event overlaps when event.startDate <= endDate AND event.endDate >= startDate.
+   */
+  dateRange?: {
+    startDate: string;
+    endDate: string;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -78,10 +98,20 @@ function snapBounds(bounds: ViewportBounds): ViewportBounds {
 }
 
 function boundsKey(bounds: ViewportBounds, filters: ViewportEventFilters): string {
+  // Include GPS radius in cache key so radius-filtered results are stored separately
+  const gpsKey = filters.gpsRadius
+    ? `gps:${filters.gpsRadius.lat}:${filters.gpsRadius.lng}:${filters.gpsRadius.radiusKm}`
+    : '';
+  // Include date range in cache key so date-filtered results are stored separately
+  const dateKey = filters.dateRange
+    ? `date:${filters.dateRange.startDate}:${filters.dateRange.endDate}`
+    : '';
   return [
     bounds.swLat, bounds.swLng, bounds.neLat, bounds.neLng,
     filters.eventType ?? '',
     filters.q ?? '',
+    gpsKey,
+    dateKey,
   ].join('|');
 }
 
@@ -223,8 +253,40 @@ export function useViewportEvents(
   const lastBoundsRef = useRef<ViewportBounds | null>(null);
 
   const fetchForBounds = useCallback(async (bounds: ViewportBounds) => {
-    const snapped = snapBounds(bounds);
     const currentFilters = filtersRef.current;
+
+    // When GPS radius is active, expand the viewport bounds to fully include the GPS
+    // radius bounding box. This guarantees that ALL events within the radius circle
+    // are fetched regardless of where the map has been panned, since the DB-level
+    // bounding-box pre-filter must contain the full circle for the Haversine post-
+    // filter to see every candidate event.
+    //
+    // Without this expansion, when the map viewport is smaller than the radius circle
+    // (which it commonly is – e.g. a 1km radius circle is 2km wide but level-4 zoom
+    // only shows ~1.2km), events in the outer ring of the circle but outside the
+    // current viewport would be silently omitted from the results.
+    let effectiveBounds = bounds;
+    if (currentFilters.gpsRadius) {
+      const { lat, lng, radiusKm } = currentFilters.gpsRadius;
+      const latDelta = radiusKm / 111.32; // 1° latitude ≈ 111.32 km
+      const lngDelta = radiusKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+      const radiusBbox: ViewportBounds = {
+        swLat: lat - latDelta,
+        swLng: lng - lngDelta,
+        neLat: lat + latDelta,
+        neLng: lng + lngDelta,
+      };
+      // Union: take the bounding rectangle that contains BOTH the viewport and the circle bbox.
+      // The Haversine post-filter in the API will then further restrict to exactly the circle.
+      effectiveBounds = {
+        swLat: Math.min(bounds.swLat, radiusBbox.swLat),
+        swLng: Math.min(bounds.swLng, radiusBbox.swLng),
+        neLat: Math.max(bounds.neLat, radiusBbox.neLat),
+        neLng: Math.max(bounds.neLng, radiusBbox.neLng),
+      };
+    }
+
+    const snapped = snapBounds(effectiveBounds);
     const key = boundsKey(snapped, currentFilters);
 
     // 1. Check client-side cache first
@@ -252,6 +314,21 @@ export function useViewportEvents(
 
       if (currentFilters.eventType) params.set('eventType', currentFilters.eventType);
       if (currentFilters.q) params.set('q', currentFilters.q);
+
+      // GPS radius filter: pass centre + radius to the API for Haversine post-filtering.
+      // The bounding box params above serve as an efficient pre-filter at DB level.
+      if (currentFilters.gpsRadius) {
+        params.set('lat', String(currentFilters.gpsRadius.lat));
+        params.set('lng', String(currentFilters.gpsRadius.lng));
+        params.set('radius', String(currentFilters.gpsRadius.radiusKm));
+      }
+
+      // Date range filter: pass start/end dates to the API.
+      // Events that overlap with the range are returned (startDate <= endDate AND endDate >= startDate).
+      if (currentFilters.dateRange) {
+        params.set('startDate', currentFilters.dateRange.startDate);
+        params.set('endDate', currentFilters.dateRange.endDate);
+      }
 
       const res = await fetch(`/api/events?${params.toString()}`, {
         signal: abortController.current.signal,
@@ -316,24 +393,70 @@ export function useViewportEvents(
     [fetchForBounds]
   );
 
-  // Auto-refetch when filters change (e.g. user taps a category tab or types a search query).
+  // Auto-refetch when filters change (e.g. user taps a category tab, types a search query,
+  // activates / changes the GPS radius filter, or selects a date range preset).
   // We read from lastBoundsRef so we always fetch the current viewport with the new filters.
   // The 300ms debounce inside updateViewport means rapid filter changes don't hammer the API.
   const prevEventTypeRef = useRef(filters.eventType);
   const prevQRef = useRef(filters.q);
+  // Serialise gpsRadius to a primitive string so we can track changes with a simple ref.
+  const prevGpsRadiusKeyRef = useRef<string>(
+    filters.gpsRadius
+      ? `${filters.gpsRadius.lat}:${filters.gpsRadius.lng}:${filters.gpsRadius.radiusKm}`
+      : ''
+  );
+  // Serialise dateRange to a primitive string so we can track changes with a simple ref.
+  const prevDateRangeKeyRef = useRef<string>(
+    filters.dateRange
+      ? `${filters.dateRange.startDate}:${filters.dateRange.endDate}`
+      : ''
+  );
 
   useEffect(() => {
+    const currentGpsKey = filters.gpsRadius
+      ? `${filters.gpsRadius.lat}:${filters.gpsRadius.lng}:${filters.gpsRadius.radiusKm}`
+      : '';
+    const currentDateKey = filters.dateRange
+      ? `${filters.dateRange.startDate}:${filters.dateRange.endDate}`
+      : '';
+
     const eventTypeChanged = prevEventTypeRef.current !== filters.eventType;
     const qChanged = prevQRef.current !== filters.q;
+    const gpsRadiusChanged = prevGpsRadiusKeyRef.current !== currentGpsKey;
+    const dateRangeChanged = prevDateRangeKeyRef.current !== currentDateKey;
 
     prevEventTypeRef.current = filters.eventType;
     prevQRef.current = filters.q;
+    prevGpsRadiusKeyRef.current = currentGpsKey;
+    prevDateRangeKeyRef.current = currentDateKey;
 
-    if ((eventTypeChanged || qChanged) && lastBoundsRef.current) {
-      // Re-use the debounced updateViewport so rapid typing still debounces
-      updateViewport(lastBoundsRef.current);
+    if (eventTypeChanged || qChanged || gpsRadiusChanged || dateRangeChanged) {
+      if (lastBoundsRef.current) {
+        // Re-use the debounced updateViewport so rapid changes still debounce
+        updateViewport(lastBoundsRef.current);
+      } else {
+        // Map viewport not yet known (map still initializing, or filter changed during
+        // sessionStorage state restore before the Kakao map fires its first `idle`).
+        // Clear the stale initialEvents so wrong-category markers don't flash on the
+        // map while it sets up at the restored viewport position.
+        // The correct events will be loaded once the map emits its first bounds update.
+        setEvents([]);
+      }
     }
-  }, [filters.eventType, filters.q, updateViewport]);
+  // gpsRadius and dateRange are spread to primitive dep values to avoid object-reference
+  // churn – a new object with the same values must not trigger a refetch.
+  // The full object refs are intentionally omitted from the dep array here.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    filters.eventType,
+    filters.q,
+    filters.gpsRadius?.lat,
+    filters.gpsRadius?.lng,
+    filters.gpsRadius?.radiusKm,
+    filters.dateRange?.startDate,
+    filters.dateRange?.endDate,
+    updateViewport,
+  ]);
 
   return { events, isLoading, error, updateViewport };
 }

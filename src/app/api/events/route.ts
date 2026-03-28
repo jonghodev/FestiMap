@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     const radius = searchParams.get('radius'); // in km
+    // Date range filter params (YYYY-MM-DD strings)
+    const filterStartDate = searchParams.get('startDate');
+    const filterEndDate = searchParams.get('endDate');
 
     // Bounding box params for viewport-based loading
     const swLat = searchParams.get('swLat');
@@ -37,6 +40,13 @@ export async function GET(request: NextRequest) {
       where.name = {
         contains: query,
       };
+    }
+
+    // Date range filter: show events that overlap with the given date range.
+    // An event overlaps when: event.startDate <= filterEndDate AND event.endDate >= filterStartDate
+    if (filterStartDate && filterEndDate) {
+      where.startDate = { lte: new Date(filterEndDate + 'T23:59:59.999Z') };
+      where.endDate = { gte: new Date(filterStartDate + 'T00:00:00.000Z') };
     }
 
     // Bounding box filter: only fetch events within visible map viewport

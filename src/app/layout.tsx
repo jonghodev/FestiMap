@@ -23,6 +23,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",   // iOS safe-area support for notch / home indicator
   themeColor: "#FACC15",
 };
 

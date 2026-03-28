@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import MapContainer from './MapContainer';
 import { useViewportEvents, type ViewportBounds } from '@/hooks/useViewportEvents';
 import type { MapMarker } from './KakaoMap';
+import { EVENT_TYPE_COLORS } from './CategoryFilter';
 
 interface MapViewProps {
   /** Initial map center latitude */
@@ -46,14 +47,21 @@ export default function MapView({
     [updateViewport]
   );
 
-  // Convert ViewportEvent → MapMarker (add click handler if provided)
-  const markers: MapMarker[] = events.map((e) => ({
-    id: e.id,
-    lat: e.latitude,
-    lng: e.longitude,
-    title: e.name,
-    onClick: onMarkerClick,
-  }));
+  // Convert ViewportEvent → MapMarker with event-type colour coding.
+  // Memoised so the markers array reference only changes when events actually change,
+  // preventing KakaoMap from destroying and recreating all markers on every render.
+  const markers: MapMarker[] = useMemo(
+    () =>
+      events.map((e) => ({
+        id: e.id,
+        lat: e.latitude,
+        lng: e.longitude,
+        title: e.name,
+        color: EVENT_TYPE_COLORS[e.eventType as keyof typeof EVENT_TYPE_COLORS] ?? '#6B7280',
+        onClick: onMarkerClick,
+      })),
+    [events, onMarkerClick]
+  );
 
   return (
     <div className={`relative ${className}`}>

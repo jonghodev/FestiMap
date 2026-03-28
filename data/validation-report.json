@@ -1,0 +1,710 @@
+{
+  "generatedAt": "2026-03-28T19:39:50.583Z",
+  "summary": {
+    "total": 53,
+    "valid": 0,
+    "validWithWarnings": 53,
+    "invalid": 0,
+    "seededCount": 53
+  },
+  "typeBreakdown": {
+    "FESTIVAL": 20,
+    "FLEA_MARKET": 18,
+    "NIGHT_MARKET": 15
+  },
+  "errorBreakdown": {},
+  "warningBreakdown": {
+    "MISSING_IMAGE_URL": 53
+  },
+  "flaggedRecords": [
+    {
+      "sourceId": "festival-001",
+      "name": "서울 봄꽃 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-002",
+      "name": "서울 재즈 페스티벌",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-003",
+      "name": "한강 불꽃 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-004",
+      "name": "광화문 빛 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-005",
+      "name": "서울 국제불꽃축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-006",
+      "name": "홍대 인디음악 페스티벌",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-007",
+      "name": "서울 푸드트럭 페스티벌",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-008",
+      "name": "북촌 한옥마을 문화축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-009",
+      "name": "서울 영화제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-010",
+      "name": "이태원 글로벌 빌리지 페스타",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-011",
+      "name": "잠실 루나파크 벚꽃 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-012",
+      "name": "성북 달빛 야행",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-013",
+      "name": "인천 송도 맥주 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-014",
+      "name": "경기 수원 화성문화제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-015",
+      "name": "서울 드럼 페스티벌",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-016",
+      "name": "강동 선사문화축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-017",
+      "name": "은평 봄 놀이마당",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-018",
+      "name": "중랑 장미공원 축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-019",
+      "name": "남산골 한마당",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "festival-020",
+      "name": "신촌 물총축제",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-001",
+      "name": "마포 희망 나눔 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-002",
+      "name": "홍대 앞 토요플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-003",
+      "name": "인사동 쌈지길 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-004",
+      "name": "성수 빈티지 마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-005",
+      "name": "동묘 구제 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-006",
+      "name": "코엑스 별마당 도서관 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-007",
+      "name": "뚝섬 한강 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-008",
+      "name": "망원 빈티지 마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-009",
+      "name": "서울숲 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-010",
+      "name": "가로수길 아트마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-011",
+      "name": "광장시장 상설 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-012",
+      "name": "경의선 책거리 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-013",
+      "name": "은평 뉴타운 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-014",
+      "name": "수원 행리단길 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-015",
+      "name": "부천 원미산 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-016",
+      "name": "이촌 한가람 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-017",
+      "name": "마포 문화비축기지 마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "flea-018",
+      "name": "성동 도시재생 플리마켓",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-001",
+      "name": "서울 밤도깨비 야시장 여의도",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-002",
+      "name": "서울 밤도깨비 야시장 반포",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-003",
+      "name": "서울 밤도깨비 야시장 청계천",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-004",
+      "name": "서울 밤도깨비 야시장 DDP",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-005",
+      "name": "홍대 클럽 데이 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-006",
+      "name": "광장시장 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-007",
+      "name": "이태원 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-008",
+      "name": "수원 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-009",
+      "name": "인천 차이나타운 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-010",
+      "name": "마포 홍어거리 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-011",
+      "name": "강남 역삼 푸드 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-012",
+      "name": "노원 불암골 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-013",
+      "name": "잠원 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-014",
+      "name": "종로 피맛골 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    },
+    {
+      "sourceId": "night-015",
+      "name": "해방촌 야시장",
+      "status": "VALID_WITH_WARNINGS",
+      "flags": [
+        {
+          "code": "MISSING_IMAGE_URL",
+          "severity": "WARNING",
+          "field": "imageUrl",
+          "message": "대표 이미지(imageUrl)가 없습니다. 지도 마커 및 목록 표시에 사용됩니다."
+        }
+      ]
+    }
+  ]
+}

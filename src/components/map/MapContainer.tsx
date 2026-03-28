@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import type { MapMarker } from './KakaoMap';
+import type { MapMarker, MapViewportState, MapPanTarget } from './KakaoMap';
 import type { ViewportBounds } from '@/hooks/useViewportEvents';
 
 // Dynamically import the map component to prevent SSR
@@ -24,9 +24,21 @@ interface MapContainerProps {
   level?: number;
   markers?: MapMarker[];
   className?: string;
+  /** User's GPS location – pans the map and shows a blue location dot */
+  userLocation?: { lat: number; lng: number } | null;
+  /**
+   * Programmatic pan target – when changed the map jumps to the given coordinates.
+   * Used by region-filter chips to centre the map on a selected district/area.
+   */
+  panTarget?: MapPanTarget | null;
   onMapReady?: (map: kakao.maps.Map) => void;
   /** Called when the map viewport settles after pan/zoom – use to load visible markers */
   onBoundsChange?: (bounds: ViewportBounds) => void;
+  /**
+   * Called when the map viewport settles after pan/zoom.
+   * Provides center coordinates and zoom level for state persistence across navigations.
+   */
+  onViewportChange?: (state: MapViewportState) => void;
   /** Called when the map fails to load */
   onError?: (error: Error) => void;
 }

@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "source": "tour_api_4.0",
+    "description": "한국관광공사 TourAPI 4.0 원시 응답 (API 키 없음 - 데이터 없음)",
+    "count": 0,
+    "generatedAt": "2026-03-28T19:18:01.701Z",
+    "apiKeyRequired": true,
+    "apiKeyEnvVar": "TOUR_API_KEY",
+    "registrationUrl": "https://www.data.go.kr/data/15101578/openapi.do"
+  },
+  "events": []
+}

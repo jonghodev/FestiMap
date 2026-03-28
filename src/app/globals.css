@@ -10,6 +10,39 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ── Breakpoints (mobile-first, min-width) ───────────────────────────────── */
+  /* Tailwind v4 reads these --breakpoint-* tokens to generate responsive
+     utility variants (sm:, md:, lg:, xl:, 2xl:).  Declaring them here makes
+     the values self-documenting and ensures they are the single source of
+     truth for every responsive override in the app.
+     Desktop breakpoint is lg (≥ 1024 px); all base styles are mobile-first. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;   /* ← primary desktop breakpoint */
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ── Desktop layout tokens ───────────────────────────────────────────────── */
+  /* Consumed by .desktop-sidebar and .desktop-map-area utility classes below.
+     Adjust these two values to reflow the entire desktop two-column shell. */
+  --desktop-sidebar-width: 380px;   /* left panel (event list / detail) */
+  --desktop-max-width: 1440px;      /* outer cap for very wide viewports   */
+
+  /* ── Custom animations ──────────────────────────────────────────────────── */
+  /* Used by BookmarkButton error tooltip and other fade-in elements */
+  --animate-fade-in: fade-in 150ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +56,279 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Mobile viewport fixes ──────────────────────────────────────────────────── */
+
+/* Prevent pull-to-refresh and elastic scroll bounce on iOS / Android.
+   The main page is a fixed full-screen app shell; individual scrollable
+   sections (filter chip rows, event list) manage their own scroll context. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
+/* Smooth document-level scrolling for standard content pages (e.g. event
+   detail page).  Gated behind prefers-reduced-motion so users who have opted
+   into reduced motion in iOS/Android accessibility settings experience instant
+   jumps instead of smooth transitions, which can cause motion sickness. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* scroll-padding-top: reserves space equal to the sticky header height so that
+   fragment-link navigation (#section-id) and programmatic scrollIntoView()
+   calls don't slide content directly behind the opaque sticky header.
+   Base value (56 px) = py-1.5 (6+6=12 px) + 44 px button min-height.
+   A small extra buffer (4 px) is added as visual breathing room → 60 px base.
+   env(safe-area-inset-top) adds the notch/Dynamic Island height on iPhones so
+   that the sticky header (which now carries pt-safe-top) never obscures anchored
+   content. On non-notched devices env(safe-area-inset-top) resolves to 0 px,
+   so the calc() is a safe no-op there. */
+html {
+  scroll-padding-top: calc(60px + env(safe-area-inset-top));
+}
+
+/* Dynamic viewport height utility with 100vh fallback.
+   On iOS Safari, 100vh (h-screen) includes the hidden browser chrome area and
+   can cause the bottom of the layout to be clipped when the URL bar appears.
+   100dvh adjusts dynamically for the actual visible area.
+   Support: Chrome 108+, Safari 15.4+, Firefox 101+ (effectively all modern mobile). */
+.h-dvh-safe {
+  height: 100vh;    /* fallback for browsers without dvh support */
+  height: 100dvh;   /* dynamic viewport height for modern mobile browsers */
+}
+
+/* Map container touch handling (full-screen / always-visible maps):
+   Pass ALL touch events directly to Kakao Map SDK's JavaScript handlers.
+   touch-action: none prevents the browser from intercepting pan/pinch gestures
+   so Kakao can handle both drag-to-pan and pinch-to-zoom natively.
+   Without this, touch-action: pan-x pan-y causes the browser to swallow
+   pinch events (pointercancel) before Kakao's zoom handler sees them.
+
+   IMPORTANT — scroll-conflict note for embedded maps:
+   This class is suitable for the full-screen home map (MapPageClient) where the
+   map occupies the entire viewport and there is no parent page scroll.  For maps
+   embedded inside scrollable pages (e.g. EventVenueMap on the event detail page)
+   use a tap-to-activate pattern instead: default to touch-action: pan-y so the
+   page can scroll, then switch to touch-action: none only after the user taps the
+   map to signal intent to interact with it.  See EventVenueMap.tsx for the
+   isMapActive state implementation. */
+.map-touch-container {
+  touch-action: none;
+}
+
+/* Hide scrollbar while keeping scroll behaviour (used for chip rows) */
+.scrollbar-hide {
+  -ms-overflow-style: none;   /* IE / Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;              /* Chrome / Safari / WebKit */
+}
+
+/* ── Scroll behaviour ───────────────────────────────────────────────────────── */
+
+/* Momentum (kinetic flick-scroll) for overflow containers on iOS/Android.
+   Modern iOS 13.4+ enables momentum scroll automatically when overflow is
+   'scroll' or 'auto', but explicit -webkit-overflow-scrolling: touch ensures
+   smooth kinetic scroll on older iOS WebViews and WKWebView-based browsers.
+   overscroll-behavior: contain prevents the scroll chain propagating to the
+   parent (body) when the user reaches the top or bottom edge of the container —
+   avoids the whole-page bounce when swiping past end of the event list.
+   will-change: scroll-position tells the compositor thread to pre-allocate a
+   GPU raster tile for the scrollable content, eliminating per-frame layout
+   recalculations and keeping scroll at a steady 60 fps on mid-range hardware. */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  will-change: scroll-position;
+}
+
+/* Smooth programmatic scrolling for scroll-restoration and "back to top"
+   actions.  Applied alongside momentum-scroll on the event list container so
+   that sessionStorage-based scroll restoration animates rather than jumps. */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* ── Horizontal scroll snap for filter chip rows ────────────────────────────── */
+
+/* Applied to horizontally-scrollable chip rows (region / GPS radius filters).
+   'proximity' is used instead of 'mandatory' so snapping is always gentle —
+   the row only snaps when inertia naturally decelerates near a snap point,
+   never fighting an intentional mid-chip stop.
+   scroll-padding-inline-start compensates for the container's left padding so
+   the first chip's left edge aligns precisely with the scroll boundary rather
+   than being partially hidden beneath the padding gutter. */
+.snap-x-proximity {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline-start: 0.75rem; /* matches px-3 container padding */
+}
+
+/* Only direct-child <button> elements are snap targets.  This deliberately
+   excludes sibling <span> elements (e.g. the "|" divider in RegionFilter and
+   the "📍 근처" label in the GPS filter) from becoming snap points. */
+.snap-x-proximity > button {
+  scroll-snap-align: start;
+}
+
+/* ── iOS safe-area inset utilities ──────────────────────────────────────────── */
+
+/* Padding that accounts for the iOS home indicator (and Android navigation bar)
+   at the bottom of the screen.  env(safe-area-inset-bottom) resolves to the
+   system-reported inset height (typically 20-34 px on modern iPhones with a
+   notch/pill) and falls back to 0 px on devices without a system inset.
+   Applied to scroll container bottoms and fixed-bottom UI elements so content
+   is never obscured by the home indicator. */
+.pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+/* Standalone safe-area spacer used as a bottom sentinel element inside
+   scrollable lists.  Combined with h-6 (1.5 rem) so there is always at
+   least 24 px of breathing room even on devices without a home indicator. */
+.safe-area-bottom {
+  height: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+/* Safe-area top padding for sticky/fixed headers when viewport-fit=cover is set.
+   On iPhones with a notch or Dynamic Island the status bar area at the very top
+   of the screen is transparent and page content extends underneath it.  Without
+   this padding the sticky header background fills the notch area visually but
+   the button/text content inside overlaps with the system time/battery indicators.
+   env(safe-area-inset-top) resolves to 0 on non-notched devices (no side effect).
+   Typically 44-59 px on iPhone X/12/13/14/15 models with Face ID or Dynamic Island.
+
+   Apply to the outer <header> element so the white background fills the notch
+   area fully; the inner content div's own vertical padding then sits cleanly
+   below the notch boundary. */
+.pt-safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ── Interactive element touch optimisations ────────────────────────────────── */
+
+/* touch-action: manipulation eliminates the 300 ms double-tap-to-zoom delay
+   on buttons/links without disabling pinch-zoom on the rest of the page.
+   It also removes the need for the browser to wait for a possible second tap
+   before firing a click event, giving the UI an instant-feel on mobile. */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+label,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  touch-action: manipulation;
+}
+
+/* Remove the default blue/grey tap highlight flash on WebKit/Blink mobile.
+   Without this iOS Safari and Android Chrome render a translucent rectangle
+   over the element for the duration of the tap, which looks unpolished. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Disable text selection on interactive controls so dragging a finger across
+   a button does not accidentally highlight text instead of triggering the tap. */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+label {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent the iOS "pop-up" callout (Copy / Share / etc.) when long-pressing
+   interactive elements.  We keep it enabled on body text so users can still
+   copy event descriptions normally. */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+label,
+img {
+  -webkit-touch-callout: none;
+}
+
+/* ── Desktop layout utilities (min-width: 1024px) ───────────────────────────
+   All classes below are no-ops on mobile (< 1024 px) so the mobile-first base
+   styles are always preserved.  At ≥ 1024 px these overrides compose the
+   classic sidebar-left / map-right two-column shell used on desktop browsers.
+
+   Usage:
+     <div className="desktop-app-shell">          ← flex row wrapper
+       <aside className="desktop-sidebar">         ← fixed-width left panel
+         …event list / filter / detail…
+       </aside>
+       <main className="desktop-map-area">         ← fills remaining width
+         …Kakao Map…
+       </main>
+     </div>
+
+   Content pages (event detail, login) use desktop-content-page to cap the
+   reading width and add comfortable side gutters on wide screens.            */
+
+/* Full-viewport wrapper – stacks vertically on mobile, side-by-side on desktop */
+.desktop-app-shell {
+  /* mobile: single column (default block/flex-col from Tailwind classes) */
+}
+@media (min-width: 1024px) {
+  .desktop-app-shell {
+    display: flex;
+    flex-direction: row;
+    height: 100dvh;            /* fill viewport without scroll on desktop     */
+    max-width: var(--desktop-max-width);
+    margin-inline: auto;       /* centre on ultra-wide monitors                */
+    overflow: hidden;          /* children manage their own scroll contexts    */
+  }
+}
+
+/* Left sidebar panel – hidden / full-width on mobile, fixed-width on desktop */
+.desktop-sidebar {
+  /* mobile: nothing (base styles from Tailwind classes take precedence) */
+}
+@media (min-width: 1024px) {
+  .desktop-sidebar {
+    width: var(--desktop-sidebar-width);
+    flex-shrink: 0;            /* never compress below declared width          */
+    border-right: 1px solid #e5e7eb;  /* gray-200 divider                     */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;          /* inner lists scroll independently             */
+  }
+}
+
+/* Right map area – full-screen on mobile, flex-grow fill on desktop */
+.desktop-map-area {
+  /* mobile: nothing (map fills its own container via h-dvh-safe)             */
+}
+@media (min-width: 1024px) {
+  .desktop-map-area {
+    flex: 1 1 0%;              /* take all space left by sidebar               */
+    min-width: 0;              /* prevent overflow past flex container         */
+    position: relative;        /* anchor absolute children (map controls)      */
+  }
+}
+
+/* Content page wrapper (event detail, login, 404).
+   Mobile: full-width, no extra padding.
+   Desktop: centred with generous side gutters and max reading width.         */
+.desktop-content-page {
+  /* mobile base – full width, no extra padding needed */
+}
+@media (min-width: 1024px) {
+  .desktop-content-page {
+    max-width: 720px;          /* comfortable reading line length              */
+    margin-inline: auto;
+    padding-inline: 2rem;      /* 32 px gutters on each side                  */
+  }
 }
