@@ -48,9 +48,21 @@ function VenueMapSkeleton() {
  *
  * Usage: import this file instead of EventVenueMap in server-component pages.
  */
-const EventVenueMapClient = dynamic(() => import('./EventVenueMap'), {
-  ssr: false,
-  loading: () => <VenueMapSkeleton />,
-});
+// webpackPrefetch: true  →  browser queues a low-priority prefetch for this
+// chunk after the initial page payload is delivered, so the map JS is ready
+// in the browser cache before the user scrolls to the venue map section.
+// webpackChunkName gives the chunk a stable filename for long-term CDN caching.
+const EventVenueMapClient = dynamic(
+  () =>
+    import(
+      /* webpackChunkName: "kakao-venue-map" */
+      /* webpackPrefetch: true */
+      './EventVenueMap'
+    ),
+  {
+    ssr: false,
+    loading: () => <VenueMapSkeleton />,
+  }
+);
 
 export default EventVenueMapClient;

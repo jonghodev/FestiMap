@@ -14,17 +14,30 @@ import DateRangeFilter, { type DateRangePreset, getDateRangeFromPreset } from '@
 import BookmarkButton from '@/components/BookmarkButton';
 import { useAuth } from '@/hooks/useAuth';
 
-const MapContainer = dynamic(() => import('@/components/map/MapContainer'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-500 text-sm">지도 불러오는 중...</p>
+// webpackPrefetch: true  →  browser fetches this chunk as a low-priority
+// background request after the initial page load, so the map JS is already
+// in the cache when the component needs to render (typically < 100 ms later).
+// webpackChunkName gives the chunk a stable, human-readable filename so that
+// CDN caching is preserved across deployments as long as the module hasn't changed.
+const MapContainer = dynamic(
+  () =>
+    import(
+      /* webpackChunkName: "kakao-map" */
+      /* webpackPrefetch: true */
+      '@/components/map/MapContainer'
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">지도 불러오는 중...</p>
+        </div>
       </div>
-    </div>
-  ),
-});
+    ),
+  }
+);
 
 // Default Seoul metropolitan area bounds used when map is unavailable
 const SEOUL_DEFAULT_BOUNDS: ViewportBounds = {

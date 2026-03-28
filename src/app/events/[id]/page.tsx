@@ -6,9 +6,11 @@ import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 import BackButton from '@/components/BackButton';
 import BookmarkButton from '@/components/BookmarkButton';
 import EventInfoSection from '@/components/EventInfoSection';
-// EventVenueMapClient uses next/dynamic internally so the map bundle is loaded
-// lazily on the client instead of being included in the page's initial JS.
-import EventVenueMap from '@/components/map/EventVenueMapClient';
+// LazyVenueMapWrapper defers Kakao SDK initialisation until the map section
+// scrolls into view (via IntersectionObserver), keeping page load fast on
+// mobile.  The underlying EventVenueMap chunk is prefetched in the background
+// so there is no perceptible delay when the user does scroll to the map.
+import EventVenueMap from '@/components/map/LazyVenueMapWrapper';
 import SocialSharePanel from '@/components/SocialSharePanel';
 
 const EVENT_TYPE_COLORS = {
