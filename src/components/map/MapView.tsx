@@ -46,12 +46,12 @@ export default function MapView({
     [updateViewport]
   );
 
-  // Convert EventMarker → MapMarker (add click handler if provided)
+  // Convert ViewportEvent → MapMarker (add click handler if provided)
   const markers: MapMarker[] = events.map((e) => ({
     id: e.id,
-    lat: e.lat,
-    lng: e.lng,
-    title: e.title,
+    lat: e.latitude,
+    lng: e.longitude,
+    title: e.name,
     onClick: onMarkerClick,
   }));
 

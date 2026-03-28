@@ -1,8 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 import MapContainer from './MapContainer';
 import type { MapMarker } from './KakaoMap';
+import { useViewportEvents, type ViewportBounds } from '@/hooks/useViewportEvents';
 
 export interface EventMapData {
   id: string;
@@ -16,26 +17,33 @@ export interface EventMapData {
 }
 
 interface HomeMapViewProps {
-  events: EventMapData[];
+  /** Called when the user taps a marker */
+  onMarkerClick?: (id: string) => void;
 }
 
 /**
- * HomeMapView — client component wrapping the map with navigation.
+ * HomeMapView — viewport-aware map component.
  *
- * Accepts serialisable event data from the server component (page.tsx)
- * and attaches router.push click handlers to each marker.
+ * Fetches only the markers visible in the current viewport from the API,
+ * rather than loading all events up-front. Caches results client-side so
+ * returning to a previously viewed area is instant.
  */
-export default function HomeMapView({ events }: HomeMapViewProps) {
-  const router = useRouter();
+export default function HomeMapView({ onMarkerClick }: HomeMapViewProps) {
+  const { events, updateViewport } = useViewportEvents();
+
+  const handleBoundsChange = useCallback(
+    (bounds: ViewportBounds) => {
+      updateViewport(bounds);
+    },
+    [updateViewport]
+  );
 
   const markers: MapMarker[] = events.map((event) => ({
     id: event.id,
     lat: event.latitude,
     lng: event.longitude,
     title: event.name,
-    onClick: (id: string) => {
-      router.push(`/events/${id}`);
-    },
+    onClick: onMarkerClick,
   }));
 
   return (
@@ -45,6 +53,7 @@ export default function HomeMapView({ events }: HomeMapViewProps) {
       level={8}
       markers={markers}
       className="w-full h-full"
+      onBoundsChange={handleBoundsChange}
     />
   );
 }
